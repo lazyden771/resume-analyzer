@@ -301,6 +301,16 @@
   .job-row .company { font-size: 12px; color: var(--muted); }
   .job-row .pct { font-size: 22px; font-weight: 700; color: var(--signal); }
 
+  .interview-intro {
+    background: var(--good-bg);
+    border: 1px solid #86EFAC;
+    padding: 14px 16px;
+    border-radius: 8px;
+    margin-bottom: 18px;
+    font-size: 13px;
+    color: #166534;
+  }
+
   .question-item { padding: 16px 0; border-bottom: 1px solid #F3F4F6; }
   .question-item:last-child { border-bottom: none; }
   .question-item .qnum {
@@ -316,7 +326,6 @@
     margin-right: 10px;
   }
   .question-item p.q { font-size: 14px; font-weight: 500; display: inline; }
-  .question-item .tip { font-size: 12px; color: var(--muted); margin-top: 8px; margin-left: 32px; }
 
   .empty-note { color: var(--muted); font-size: 13px; padding: 8px 0; }
 
@@ -443,11 +452,13 @@ Responsibilities: lead backend development, mentor engineers."></textarea>
 
 <script>
 const API_URL = 'https://python-helper--browz123.replit.app/api/v1/analyze';
+
 function showError(msg) {
   const b = document.getElementById('errorBanner');
   b.textContent = msg;
   b.style.display = 'block';
 }
+
 function clearError() {
   document.getElementById('errorBanner').style.display = 'none';
 }
@@ -457,11 +468,12 @@ function verdictClass(score) {
   if (score >= 50) return 'warn';
   return 'bad';
 }
+
 function verdictText(score, kind) {
   if (kind === 'ats') {
-    if (score >= 75) return 'Strong \u2014 likely to pass ATS filters';
-    if (score >= 50) return 'Moderate \u2014 some gaps to close';
-    return 'Weak \u2014 high risk of automatic rejection';
+    if (score >= 75) return 'Strong — likely to pass ATS filters';
+    if (score >= 50) return 'Moderate — some gaps to close';
+    return 'Weak — high risk of automatic rejection';
   } else {
     if (score >= 75) return 'Strong alignment with this role';
     if (score >= 50) return 'Partial alignment';
@@ -499,7 +511,7 @@ async function analyze() {
     renderResults(data);
   } catch (err) {
     if (err.message.includes('Failed to fetch')) {
-      showError('Could not reach the backend at localhost:5000. Make sure the Python server is running.');
+      showError('Could not reach the backend. Make sure the Python server is running.');
     } else {
       showError(err.message);
     }
@@ -524,7 +536,7 @@ function renderResults(data) {
   matchV.className = 'score-verdict ' + verdictClass(data.match_score);
 
   document.getElementById('salaryRow').textContent =
-    '$' + Math.round(data.salary_range.min/1000) + 'K \u2013 $' + Math.round(data.salary_range.max/1000) + 'K';
+    '$' + Math.round(data.salary_range.min/1000) + 'K – $' + Math.round(data.salary_range.max/1000) + 'K';
 
   const sList = document.getElementById('strengthsList');
   sList.innerHTML = '';
@@ -572,12 +584,19 @@ function renderResults(data) {
 
   const intCard = document.getElementById('interviewCard');
   intCard.innerHTML = '';
+  
+  // Add intro with STAR method explanation
+  const intro = document.createElement('div');
+  intro.className = 'interview-intro';
+  intro.innerHTML = '<strong>Pro tip:</strong> Use the STAR method for your answers — describe the <strong>Situation</strong>, your <strong>Task</strong>, the <strong>Action</strong> you took, and the <strong>Result</strong>.';
+  intCard.appendChild(intro);
+
+  // Add questions without redundant tips
   data.interview_questions.forEach((q, i) => {
     const item = document.createElement('div');
     item.className = 'question-item';
     item.innerHTML =
-      '<span class="qnum">' + (i+1) + '</span><p class="q">' + q + '</p>' +
-      '<div class="tip">Use the STAR method \u2014 Situation, Task, Action, Result.</div>';
+      '<span class="qnum">' + (i+1) + '</span><p class="q">' + q + '</p>';
     intCard.appendChild(item);
   });
 }
@@ -586,7 +605,7 @@ function renderPhase(elId, items) {
   const el = document.getElementById(elId);
   el.innerHTML = '';
   if (!items || items.length === 0) {
-    el.innerHTML = '<div class="empty-note">Nothing scheduled for this phase.</div>';
+    el.innerHTML = '<div class="empty-note">✓ No additional skills needed for this phase. Focus on strengthening existing expertise.</div>';
     return;
   }
   items.forEach(item => {
@@ -595,7 +614,7 @@ function renderPhase(elId, items) {
     div.innerHTML =
       '<div class="skill-item-top"><strong>' + item.skill + '</strong>' +
       '<span class="priority-badge ' + item.priority + '">' + item.priority + '</span></div>' +
-      '<div class="meta">' + item.resource + ' \u00b7 ' + item.duration + '</div>';
+      '<div class="meta">' + item.resource + ' · ' + item.duration + '</div>';
     el.appendChild(div);
   });
 }
