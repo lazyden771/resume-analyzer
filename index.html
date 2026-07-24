@@ -354,7 +354,11 @@
     <p>Paste your resume and a target job description. You'll get an ATS score, missing skills, and a plan to close the gap.</p>
 
     <div class="field">
-      <label>Your resume <span class="hint">&mdash; paste as plain text</span></label>
+      <label>Your resume <span class="hint">&mdash; paste as plain text or upload PDF</span></label>
+      <div style="margin-bottom: 10px;">
+        <input type="file" id="resumePdf" accept=".pdf" style="font-size: 13px; padding: 8px 0;" />
+        <span style="color: var(--muted); font-size: 12px; margin-left: 8px;">or paste below</span>
+      </div>
       <textarea id="resumeText" placeholder="Paste your resume text here...
 
 e.g.
@@ -450,8 +454,43 @@ Responsibilities: lead backend development, mentor engineers."></textarea>
 
 </main>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
+// Set up PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
 const API_URL = 'https://python-helper--browz123.replit.app/api/v1/analyze';
+
+// Handle PDF file upload
+document.getElementById('resumePdf').addEventListener('change', async function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  btn.textContent = 'Extracting PDF…';
+
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    
+    let fullText = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items.map(item => item.str).join(' ');
+      fullText += pageText + '\n';
+    }
+
+    document.getElementById('resumeText').value = fullText;
+    btn.disabled = false;
+    btn.textContent = 'Analyze resume →';
+  } catch (err) {
+    alert('Error reading PDF: ' + err.message);
+    btn.disabled = false;
+    btn.textContent = 'Analyze resume →';
+  }
+});
 
 function showError(msg) {
   const b = document.getElementById('errorBanner');
